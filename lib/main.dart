@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -8,10 +9,7 @@ void main() async {
   runApp(
     MaterialApp(
       home: Home(),
-      theme: ThemeData(
-        hintColor: Colors.amber,
-        primaryColor: Colors.white
-      ),
+      theme: ThemeData(hintColor: Colors.amber, primaryColor: Colors.white),
     ),
   );
 }
@@ -27,8 +25,48 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final realController = TextEditingController();
+  final dolarController = TextEditingController();
+  final euroController = TextEditingController();
+
   double dolar;
   double euro;
+
+  void _realChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    }
+    double real = double.parse(text);
+    dolarController.text = (real / dolar).toStringAsFixed(2);
+    euroController.text = (real / euro).toStringAsFixed(2);
+  }
+
+  void _dolarChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    }
+    double dolar = double.parse(text);
+    realController.text = (dolar * this.dolar).toStringAsFixed(2);
+    euroController.text = (dolar * this.dolar / euro).toStringAsFixed(2);
+  }
+
+  void _euroChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    }
+    double euro = double.parse(text);
+    realController.text = (euro * this.euro).toStringAsFixed(2);
+    dolarController.text = (euro * this.euro / dolar).toStringAsFixed(2);
+  }
+
+  void _clearAll() {
+    realController.text = "";
+    dolarController.text = "";
+    euroController.text = "";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,44 +106,14 @@ class _HomeState extends State<Home> {
                         color: Colors.amber,
                       ),
                       Divider(),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Reais',
-                          labelStyle: TextStyle(color: Colors.amber),
-                          border: OutlineInputBorder(),
-                          prefixText: 'R\$ ',
-                        ),
-                        style: TextStyle(
-                          color: Colors.amber,
-                          fontSize: 25.0,
-                        ),
-                      ),
+                      buildTextField(
+                          'Reais', 'R\$', realController, _realChanged),
                       Divider(),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Reais',
-                          labelStyle: TextStyle(color: Colors.amber),
-                          border: OutlineInputBorder(),
-                          prefixText: 'R\$ ',
-                        ),
-                        style: TextStyle(
-                          color: Colors.amber,
-                          fontSize: 25.0,
-                        ),
-                      ),
+                      buildTextField(
+                          'Dólares', 'US\$', dolarController, _dolarChanged),
                       Divider(),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Reais',
-                          labelStyle: TextStyle(color: Colors.amber),
-                          border: OutlineInputBorder(),
-                          prefixText: 'R\$ ',
-                        ),
-                        style: TextStyle(
-                          color: Colors.amber,
-                          fontSize: 25.0,
-                        ),
-                      )
+                      buildTextField(
+                          'Euros', '€ ', euroController, _euroChanged),
                     ],
                   ),
                 );
@@ -121,4 +129,24 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+}
+
+Widget buildTextField(
+    String label, String prefix, TextEditingController control, Function func) {
+  return TextField(
+    controller: control,
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.amber),
+      border: OutlineInputBorder(),
+      prefixText: prefix,
+    ),
+    style: TextStyle(
+      color: Colors.amber,
+      fontSize: 25.0,
+    ),
+    onChanged: func,
+    keyboardType: TextInputType.number,
+    inputFormatters: [WhitelistingTextInputFormatter.digitsOnly],
+  );
 }
